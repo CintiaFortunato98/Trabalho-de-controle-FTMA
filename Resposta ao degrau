@@ -1,0 +1,70 @@
+import serial
+import matplotlib.pyplot as plt
+
+# Configurações da porta serial (ajuste conforme necessário)
+porta_serial = 'COM3'  # Porta que o Arduino está conectado
+baud_rate = 9600
+
+# Inicializa a conexão serial
+ser = serial.Serial(porta_serial, baud_rate)
+
+# Lista vazia para armazenar os dados brutos
+dados_brutos = []
+
+# Lista para armazenar a média móvel
+media_movel = []
+
+# Tempo inicial (para plotar o gráfico)
+tempo = 0
+
+# Tamanho da janela do filtro de média móvel
+tamanho_janela = 10
+
+media_anterior = 0
+
+# Configurações do gráfico
+plt.ion()  # Modo interativo ligado para atualização do gráfico
+fig, ax = plt.subplots()
+line, = ax.plot([], [], 'r-')  # 'r-' indica uma linha vermelha
+ax.autoscale(enable=True, axis='both', tight=True)  # Ajusta automaticamente os limites dos eixos
+
+
+
+# Loop para ler os dados da porta serial
+while True:
+    # Lê uma linha da porta serial
+    line_data = ser.readline().decode('utf-8').strip()
+    try:
+        if "Degrau aplicado" in line_data:
+            print(line_data)  # Indica que o degrau foi aplicado
+            continue  # Pula a plotagem se for uma mensagem de degrau
+
+        # Converte o valor lido para float (remova se não for necessário)
+        valor = float(line_data)
+        # Adiciona o valor à lista de dados brutos
+        dados_brutos.append(valor)
+        # Aplica o filtro de média móvel aos dados brutos
+        if len(dados_brutos) >= tamanho_janela:
+            # Calcula a média dos últimos dados brutos
+            media = sum(dados_brutos[-tamanho_janela:]) / tamanho_janela
+            # Adiciona a média móvel à lista de médias móveis
+            media_movel.append(media)
+            # Incrementa o tempo
+            tempo += 0.1  # Supondo que você está lendo a cada 100 ms (tempo em segundos)
+            # Atualiza os dados do gráfico
+            line.set_xdata(range(len(media_movel)))
+            line.set_ydata(media_movel)
+            ax.set_xlim(0, max(20, tempo))  # Ajusta o eixo x conforme o tempo passa
+            ax.set_ylim(0, max(media_movel)*1.5)
+            plt.xlabel('Tempo (s)')
+            plt.ylabel('Velocidade (pulses per second)')
+            plt.title('Velocidade do Motor ao Longo do Tempo (com Média Móvel)')
+            plt.pause(0.01)  # Atualiza o gráfico
+            # Atualiza o valor anterior para o próximo loop
+            media_anterior = media
+    except ValueError:
+        # Se não puder converter para float, ignora a linha
+        pass
+
+# Fecha a conexão serial (não alcançado neste exemplo)
+ser.close()
