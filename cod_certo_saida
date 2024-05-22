@@ -1,0 +1,58 @@
+// resposta a saida arduino 
+
+const int in1Pin = 9; // Pino de controle 1
+const int in2Pin = 8; // Pino de controle 2
+const int enPin = 10;  // Pino de habilitação
+const int encoderPinA = 2; // Canal A do encoder
+const int encoderPinB = 19; // Canal B do encoder
+
+volatile long encoderCount = 0;
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(in1Pin, OUTPUT);
+  pinMode(in2Pin, OUTPUT);
+  pinMode(enPin, OUTPUT);
+  pinMode(encoderPinA, INPUT);
+  pinMode(encoderPinB, INPUT);
+
+  // Configura interrupção para contar os pulsos do encoder
+  attachInterrupt(digitalPinToInterrupt(encoderPinA), countPulses, RISING);
+
+  // Inicializa o motor
+  digitalWrite(in1Pin, HIGH);
+  digitalWrite(in2Pin, LOW);
+  analogWrite(enPin, 90); // Velocidade média
+}
+
+void countPulses() {
+  // Verifica a direção do movimento
+  if (digitalRead(encoderPinA) == digitalRead(encoderPinB)) {
+    encoderCount++;
+  } else {
+    encoderCount--;
+  }
+}
+
+void loop() {
+  static long previousCount = 0;
+  static unsigned long lastTime = 0;
+
+  unsigned long currentTime = millis();
+  if (currentTime - lastTime >= 100) { // a cada 100 ms
+    long count = encoderCount;
+    long countChange = count - previousCount;
+    float speed = (countChange / 0.1); // Velocidade em pulsos por segundo (pulses per second)
+
+    // Introduzir uma mudança na entrada após 2 segundos
+    if (currentTime >= 2000 && currentTime < 2100) {
+      analogWrite(enPin, 200); // Aumenta a velocidade do motor
+    }
+
+    //Serial.print("Speed: ");
+    Serial.println(speed);
+
+    previousCount = count;
+    lastTime = currentTime;
+  }
+}
