@@ -1,33 +1,33 @@
 // resposta a saida arduino 
 
-const int in1Pin = 9; // Pino de controle 1
-const int in2Pin = 8; // Pino de controle 2
-const int enPin = 10;  // Pino de habilitação
-const int encoderPinA = 2; // Canal A do encoder
-const int encoderPinB = 19; // Canal B do encoder
+const int IN1 = 9; // Pino de controle 1
+const int IN2 = 8; // Pino de controle 2
+const int ENA = 10;  // Pino de habilitação
+const int CHA = 2; // Canal A do encoder
+const int CHB = 19; // Canal B do encoder
 
 volatile long encoderCount = 0;
 
 void setup() {
   Serial.begin(9600);
-  pinMode(in1Pin, OUTPUT);
-  pinMode(in2Pin, OUTPUT);
-  pinMode(enPin, OUTPUT);
-  pinMode(encoderPinA, INPUT);
-  pinMode(encoderPinB, INPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(ENA, OUTPUT);
+  pinMode(CHA, INPUT);
+  pinMode(CHB, INPUT);
 
   // Configura interrupção para contar os pulsos do encoder
-  attachInterrupt(digitalPinToInterrupt(encoderPinA), countPulses, RISING);
+  attachInterrupt(digitalPinToInterrupt(CHA), countPulses, RISING);
 
   // Inicializa o motor
-  digitalWrite(in1Pin, HIGH);
-  digitalWrite(in2Pin, LOW);
-  analogWrite(enPin, 90); // Velocidade média
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  analogWrite(ENA, 90); // Velocidade média
 }
 
 void countPulses() {
   // Verifica a direção do movimento
-  if (digitalRead(encoderPinA) == digitalRead(encoderPinB)) {
+  if (digitalRead(CHA) == digitalRead(CHB)) {
     encoderCount++;
   } else {
     encoderCount--;
@@ -46,7 +46,7 @@ void loop() {
 
     // Introduzir uma mudança na entrada após 2 segundos
     if (currentTime >= 2000 && currentTime < 2100) {
-      analogWrite(enPin, 200); // Aumenta a velocidade do motor
+      analogWrite(ENA, 200); // Aumenta a velocidade do motor
     }
 
     //Serial.print("Speed: ");
